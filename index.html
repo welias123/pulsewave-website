@@ -297,7 +297,7 @@
 
 <script>
 // ── API Config ────────────────────────────────────────────────────────────
-const API = 'https://pulsewave-server.onrender.com';
+const API = 'https://pulsewave-welias.loca.lt';
 
 // ── State ─────────────────────────────────────────────────────────────────
 let currentUser = null;
@@ -310,6 +310,7 @@ async function apiFetch(url, options = {}) {
     headers: {
       'Content-Type': 'application/json',
       ...(token ? { Authorization: 'Bearer ' + token } : {}),
+      'bypass-tunnel-reminder': 'true',
       ...options.headers,
     }
   });
