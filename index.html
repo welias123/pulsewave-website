@@ -278,84 +278,136 @@
   ══════════════════════════════════════════════════════════ */
   .pricing {
     padding: 100px 24px;
-    background: linear-gradient(180deg, #080808 0%, #0a0900 50%, #080808 100%);
+    background: linear-gradient(180deg, #080808 0%, #0a0900 60%, #080808 100%);
   }
-  .pricing-inner { max-width: 900px; margin: 0 auto; }
+  .pricing-inner { max-width: 860px; margin: 0 auto; }
   .pricing-cards {
     display: grid; grid-template-columns: 1fr 1fr;
-    gap: 20px; margin-top: 48px;
+    gap: 24px; margin-top: 52px; align-items: stretch;
   }
   @media (max-width: 640px) { .pricing-cards { grid-template-columns: 1fr; } }
 
   .pricing-card {
-    background: #0f0f0f; border: 1.5px solid #1a1a1a;
-    border-radius: 20px; padding: 32px;
-    position: relative; overflow: hidden;
-    transition: transform .2s, box-shadow .2s;
+    background: #0d0d0d;
+    border: 1.5px solid #1e1e1e;
+    border-radius: 24px;
+    padding: 36px 32px 32px;
+    position: relative;
+    display: flex; flex-direction: column;
+    transition: transform .25s, box-shadow .25s;
   }
-  .pricing-card:hover { transform: translateY(-4px); }
+  .pricing-card:hover { transform: translateY(-6px); }
+
+  /* FREE card accent line */
+  .pricing-card.free-card {
+    border-color: #222;
+  }
+  .pricing-card.free-card::after {
+    content: '';
+    position: absolute; top: 0; left: 32px; right: 32px; height: 2px;
+    background: linear-gradient(90deg, transparent, #333, transparent);
+    border-radius: 2px;
+  }
+
+  /* PREMIUM card */
   .pricing-card.premium {
-    border-color: rgba(255,214,0,.4);
-    background: linear-gradient(145deg, #0f0e00, #0f0f0f);
-    box-shadow: 0 0 40px rgba(255,214,0,.08);
+    border-color: rgba(255,214,0,.35);
+    background: linear-gradient(160deg, #0f0e00 0%, #0d0d0d 60%);
+    box-shadow: 0 0 60px rgba(255,214,0,.07), 0 0 0 1px rgba(255,214,0,.08) inset;
   }
-  .pricing-card.premium::before {
-    content: '⭐ BELIEBT';
-    position: absolute; top: 20px; right: 20px;
-    background: #FFD600; color: #000;
-    font-size: 10px; font-weight: 800; letter-spacing: 1px;
-    padding: 4px 10px; border-radius: 20px;
+  .pricing-card.premium::after {
+    content: '';
+    position: absolute; top: 0; left: 32px; right: 32px; height: 2px;
+    background: linear-gradient(90deg, transparent, #FFD600, transparent);
+    border-radius: 2px;
   }
   .pricing-card.premium:hover {
-    box-shadow: 0 20px 60px rgba(255,214,0,.15);
+    box-shadow: 0 24px 70px rgba(255,214,0,.16), 0 0 0 1px rgba(255,214,0,.12) inset;
   }
 
-  .plan-name { font-size: 13px; font-weight: 700; color: #555; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; }
-  .plan-price { font-size: 48px; font-weight: 900; color: #fff; line-height: 1; }
-  .plan-price sup { font-size: 22px; vertical-align: top; margin-top: 10px; color: #FFD600; }
-  .plan-price .period { font-size: 15px; font-weight: 500; color: #555; }
-  .plan-price-sub { font-size: 13px; color: #444; margin-top: 6px; margin-bottom: 24px; }
+  .plan-badge {
+    display: inline-flex; align-items: center; gap: 5px;
+    background: rgba(255,214,0,.12); color: #FFD600;
+    font-size: 10px; font-weight: 800; letter-spacing: 1.5px;
+    padding: 4px 10px; border-radius: 20px;
+    border: 1px solid rgba(255,214,0,.2);
+    margin-bottom: 20px; width: fit-content;
+  }
+  .free-badge {
+    background: rgba(255,255,255,.05); color: #555;
+    border-color: #2a2a2a;
+  }
 
-  .plan-features { list-style: none; display: flex; flex-direction: column; gap: 12px; margin-bottom: 28px; }
+  .plan-price-wrap { margin-bottom: 8px; }
+  .plan-price-big {
+    font-size: 64px; font-weight: 900; color: #fff; line-height: 1;
+    display: flex; align-items: flex-start; gap: 4px;
+  }
+  .plan-price-big .currency {
+    font-size: 24px; font-weight: 700; color: #FFD600;
+    margin-top: 12px;
+  }
+  .plan-price-big .price-num { color: #fff; }
+  .plan-price-big .period {
+    font-size: 15px; font-weight: 500; color: #444;
+    align-self: flex-end; margin-bottom: 10px;
+  }
+  .plan-tagline { font-size: 13px; color: #3a3a3a; margin-top: 4px; margin-bottom: 28px; }
+  .plan-tagline.gold { color: #5a4a00; }
+
+  .plan-divider {
+    height: 1px; background: #181818; margin-bottom: 24px;
+  }
+  .pricing-card.premium .plan-divider { background: rgba(255,214,0,.08); }
+
+  .plan-features {
+    list-style: none;
+    display: flex; flex-direction: column; gap: 14px;
+    margin-bottom: 32px; flex: 1;
+  }
   .plan-features li {
-    display: flex; align-items: center; gap: 10px;
-    font-size: 14px; color: #888;
+    display: flex; align-items: center; gap: 12px;
+    font-size: 14px; color: #777;
   }
+  .plan-features li.has { color: #bbb; }
+  .plan-features li.hasnt { color: #333; }
+  .plan-features li strong { color: #ddd; }
   .plan-features li .fi {
-    width: 20px; height: 20px; border-radius: 50%;
+    width: 22px; height: 22px; border-radius: 50%;
     display: flex; align-items: center; justify-content: center;
-    font-size: 11px; flex-shrink: 0;
+    font-size: 11px; font-weight: 700; flex-shrink: 0;
   }
-  .plan-features li .fi.yes { background: rgba(34,197,94,.15); color: #22c55e; }
-  .plan-features li .fi.no  { background: rgba(255,255,255,.04); color: #333; }
-  .plan-features li.premium-feature { color: #ccc; }
+  .fi-yes { background: rgba(34,197,94,.12); color: #22c55e; }
+  .fi-gold { background: rgba(255,214,0,.15); color: #FFD600; }
+  .fi-no  { background: rgba(255,255,255,.03); color: #2a2a2a; }
 
   .plan-btn {
-    display: block; width: 100%; padding: 14px;
-    border: none; border-radius: 12px;
+    display: block; width: 100%; padding: 15px;
+    border: none; border-radius: 14px;
     font-size: 14px; font-weight: 700; cursor: pointer;
     transition: all .2s; text-align: center; text-decoration: none;
+    margin-top: auto;
   }
-  .plan-btn.free {
-    background: #1a1a1a; color: #888;
-    border: 1.5px solid #222;
+  .plan-btn-free {
+    background: #161616; color: #666;
+    border: 1.5px solid #252525;
   }
-  .plan-btn.free:hover { background: #222; color: #fff; }
-  .plan-btn.premium-btn {
-    background: linear-gradient(135deg, #FFD600, #FF9900);
-    color: #000; box-shadow: 0 4px 20px rgba(255,214,0,.3);
+  .plan-btn-free:hover { background: #1e1e1e; color: #999; border-color: #333; }
+  .plan-btn-premium {
+    background: linear-gradient(135deg, #FFD600 0%, #FF9900 100%);
+    color: #000; font-size: 15px;
+    box-shadow: 0 4px 24px rgba(255,214,0,.28);
   }
-  .plan-btn.premium-btn:hover {
-    box-shadow: 0 8px 40px rgba(255,214,0,.5);
+  .plan-btn-premium:hover {
+    box-shadow: 0 10px 44px rgba(255,214,0,.5);
     transform: translateY(-2px);
   }
 
-  /* Ad banner */
-  .ad-notice {
-    display: flex; align-items: center; gap: 8px;
-    font-size: 12px; color: #333; margin-top: 8px;
-    justify-content: center;
+  .plan-footer-note {
+    display: flex; align-items: center; justify-content: center; gap: 6px;
+    font-size: 11px; color: #282828; margin-top: 12px;
   }
+  .pricing-card.premium .plan-footer-note { color: #3a3500; }
 
   /* ══════════════════════════════════════════════════════════
      TOAST
@@ -666,43 +718,59 @@
     <p style="text-align:center;color:#555;font-size:15px;margin-top:-16px">Starte kostenlos — upgrade jederzeit für €2/Monat.</p>
 
     <div class="pricing-cards">
-      <!-- Free -->
-      <div class="pricing-card">
-        <div class="plan-name">Free</div>
-        <div class="plan-price">€<span style="font-size:48px;font-weight:900">0</span><span class="period">/Monat</span></div>
-        <div class="plan-price-sub">Für immer kostenlos</div>
+
+      <!-- ── FREE ── -->
+      <div class="pricing-card free-card">
+        <div class="plan-badge free-badge">FREE</div>
+        <div class="plan-price-wrap">
+          <div class="plan-price-big">
+            <span class="currency">€</span>
+            <span class="price-num">0</span>
+            <span class="period">/Monat</span>
+          </div>
+        </div>
+        <div class="plan-tagline">Für immer kostenlos — kein Kreditkarte nötig</div>
+        <div class="plan-divider"></div>
         <ul class="plan-features">
-          <li><div class="fi yes">✓</div> Musik-Streaming</div></li>
-          <li><div class="fi yes">✓</div> 7-Band Equalizer</li>
-          <li><div class="fi yes">✓</div> 5 Playlists</li>
-          <li><div class="fi yes">✓</div> 20 Songs Verlauf</li>
-          <li><div class="fi yes">✓</div> Flat/Bass/Rock Presets</li>
-          <li><div class="fi no">✗</div> <span style="color:#333">Werbung wird angezeigt</span></li>
-          <li><div class="fi no">✗</div> <span style="color:#333">Kein Sleep Timer</span></li>
-          <li><div class="fi no">✗</div> <span style="color:#333">Kein Crossfade</span></li>
+          <li class="has"><span class="fi fi-yes">✓</span> Musik-Streaming via YouTube</li>
+          <li class="has"><span class="fi fi-yes">✓</span> 7-Band Equalizer</li>
+          <li class="has"><span class="fi fi-yes">✓</span> 5 Playlists</li>
+          <li class="has"><span class="fi fi-yes">✓</span> 20 Songs Verlauf</li>
+          <li class="has"><span class="fi fi-yes">✓</span> Flat / Bass / Rock Presets</li>
+          <li class="hasnt"><span class="fi fi-no">✗</span> Werbung wird angezeigt</li>
+          <li class="hasnt"><span class="fi fi-no">✗</span> Kein Sleep Timer</li>
+          <li class="hasnt"><span class="fi fi-no">✗</span> Kein Crossfade</li>
         </ul>
-        <a href="#" class="plan-btn free" onclick="event.preventDefault();openAuth('register')">Kostenlos starten</a>
-        <div class="ad-notice">📢 Mit Werbung finanziert</div>
+        <a href="#" class="plan-btn plan-btn-free" onclick="event.preventDefault();openAuth('register')">Kostenlos starten</a>
+        <div class="plan-footer-note">📢 Mit Werbung finanziert</div>
       </div>
 
-      <!-- Premium -->
+      <!-- ── PREMIUM ── -->
       <div class="pricing-card premium">
-        <div class="plan-name">Premium</div>
-        <div class="plan-price"><sup>€</sup>2<span class="period">/Monat</span></div>
-        <div class="plan-price-sub">Jederzeit kündbar · keine Bindung</div>
+        <div class="plan-badge">⭐ PREMIUM</div>
+        <div class="plan-price-wrap">
+          <div class="plan-price-big">
+            <span class="currency">€</span>
+            <span class="price-num">2</span>
+            <span class="period">/Monat</span>
+          </div>
+        </div>
+        <div class="plan-tagline gold">Jederzeit kündbar · keine Mindestlaufzeit</div>
+        <div class="plan-divider"></div>
         <ul class="plan-features">
-          <li class="premium-feature"><div class="fi yes">✓</div> Alles aus Free</li>
-          <li class="premium-feature"><div class="fi yes">✓</div> <strong>Keine Werbung</strong></li>
-          <li class="premium-feature"><div class="fi yes">✓</div> Unbegrenzte Playlists</li>
-          <li class="premium-feature"><div class="fi yes">✓</div> Unbegrenzter Verlauf</li>
-          <li class="premium-feature"><div class="fi yes">✓</div> Alle EQ-Presets speichern</li>
-          <li class="premium-feature"><div class="fi yes">✓</div> <strong>Sleep Timer</strong></li>
-          <li class="premium-feature"><div class="fi yes">✓</div> <strong>Crossfade</strong></li>
-          <li class="premium-feature"><div class="fi yes">✓</div> Premium Gold Theme</li>
+          <li class="has"><span class="fi fi-gold">✓</span> Alles aus Free</li>
+          <li class="has"><span class="fi fi-gold">✓</span> <strong>Keine Werbung</strong></li>
+          <li class="has"><span class="fi fi-gold">✓</span> Unbegrenzte Playlists</li>
+          <li class="has"><span class="fi fi-gold">✓</span> Unbegrenzter Song-Verlauf</li>
+          <li class="has"><span class="fi fi-gold">✓</span> Alle EQ-Presets speichern</li>
+          <li class="has"><span class="fi fi-gold">✓</span> <strong>Sleep Timer</strong></li>
+          <li class="has"><span class="fi fi-gold">✓</span> <strong>Crossfade</strong></li>
+          <li class="has"><span class="fi fi-gold">✓</span> Premium Gold Theme</li>
         </ul>
-        <button class="plan-btn premium-btn" onclick="startCheckout()">⭐ Jetzt upgraden — €2/Monat</button>
-        <div class="ad-notice" style="color:#444">🔒 Sicher bezahlen via Stripe · SSL verschlüsselt</div>
+        <button class="plan-btn plan-btn-premium" onclick="startCheckout()">⭐ Jetzt upgraden — €2/Monat</button>
+        <div class="plan-footer-note">🔒 Sicher via Stripe · SSL verschlüsselt</div>
       </div>
+
     </div>
   </div>
 </section>
