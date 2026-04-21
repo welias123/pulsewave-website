@@ -860,12 +860,15 @@ function wpPlayIdx(i) {
   document.getElementById('wp-player-placeholder').style.display = 'none';
   loadYTApi();
 
-  if (wpPlayer && wpPlayer.loadVideoById) {
-    wpPlayer.loadVideoById(t.videoId);
-  } else {
-    // API not ready yet — wait and retry
-    setTimeout(() => { if(wpPlayer) wpPlayer.loadVideoById(t.videoId); }, 1500);
-  }
+  // Wait for YouTube API to be ready, then load video
+  const tryLoad = (attempts) => {
+    if (wpPlayer && wpPlayer.loadVideoById) {
+      wpPlayer.loadVideoById(t.videoId);
+    } else if (attempts > 0) {
+      setTimeout(() => tryLoad(attempts - 1), 500);
+    }
+  };
+  tryLoad(20); // retry up to 20× every 500ms = 10s max wait
   renderWpList();
 }
 
@@ -875,8 +878,10 @@ function wpToggle() {
 }
 function wpNext() { if (wpIdx < wpTracks.length-1) wpPlayIdx(wpIdx+1); }
 function wpPrev() { if (wpIdx > 0) wpPlayIdx(wpIdx-1); }
+
+// Pre-load YouTube API immediately so it's ready when first search completes
+loadYTApi();
 </script>
-<script src="https://www.youtube.com/iframe_api" async></script>
 
 <!-- ── FEATURES ── -->
 <section class="features" id="features">
