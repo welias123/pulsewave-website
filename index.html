@@ -402,6 +402,14 @@
     box-shadow: 0 10px 44px rgba(255,214,0,.5);
     transform: translateY(-2px);
   }
+  .pay-btn-main {
+    display: flex; align-items: center; justify-content: center; gap: 10px;
+    width: 100%; background: #003087; color: #fff;
+    border: none; border-radius: 12px; padding: 14px;
+    font-size: 15px; font-weight: 700; cursor: pointer; text-decoration: none;
+    transition: background .2s, transform .2s;
+  }
+  .pay-btn-main:hover { background: #002060; transform: translateY(-1px); }
 
   .plan-footer-note {
     display: flex; align-items: center; justify-content: center; gap: 6px;
@@ -1369,20 +1377,88 @@ function logout() {
 }
 
 // ══════════════════════════════════════════════════════════
-// STRIPE CHECKOUT
+// PREMIUM CHECKOUT — Aktivierungscode-System
 // ══════════════════════════════════════════════════════════
+let _payInfo = null;
+
 async function startCheckout() {
   if (!currentUser) {
     openAuth('register');
     showToast('Erstelle zuerst einen Account, dann upgrade auf Premium!');
     return;
   }
+  // Load payment info from server
+  if (!_payInfo) {
+    try { _payInfo = await apiFetch('/api/payment-info'); } catch { _payInfo = {}; }
+  }
+  openPremiumPayModal(_payInfo);
+}
+
+function openPremiumPayModal(info) {
+  const existing = document.getElementById('pay-modal');
+  if (existing) existing.remove();
+
+  const paypalBtn = info?.paypalLink
+    ? `<a href="${info.paypalLink}" target="_blank" class="pay-btn-main">
+         <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20" style="flex-shrink:0"><path d="M7.076 21.337H2.47a.641.641 0 0 1-.633-.74L4.944.901C5.026.382 5.474 0 5.998 0h7.46c2.57 0 4.578.543 5.69 1.81 1.01 1.15 1.304 2.42 1.012 4.287-.023.143-.047.288-.077.437-.983 5.05-4.349 6.797-8.647 6.797h-2.19c-.524 0-.968.382-1.05.9l-1.12 7.106zm14.146-14.42a3.35 3.35 0 0 0-.607-.541c-.013.076-.026.175-.041.254-.93 4.778-4.005 7.201-9.138 7.201h-2.19a.563.563 0 0 0-.556.479l-1.187 7.527h-.99l-.094.574c-.055.346.212.658.562.658h3.932c.458 0 .85-.334.922-.787l.038-.196.731-4.625.047-.254c.072-.453.464-.787.922-.787h.58c3.76 0 6.701-1.528 7.559-5.946.36-1.847.174-3.388-.895-4.557z"/></svg>
+         €${info?.price||2}/Monat via PayPal
+       </a>`
+    : `<div style="background:#1a1a00;border:1px solid #333;border-radius:12px;padding:16px;font-size:13px;color:#888;text-align:center">
+         Kontaktiere den Admin für einen Aktivierungscode.
+       </div>`;
+
+  const modal = document.createElement('div');
+  modal.id = 'pay-modal';
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px';
+  modal.innerHTML = `
+    <div style="background:#111;border:1.5px solid #222;border-radius:24px;padding:36px;max-width:460px;width:100%;position:relative">
+      <button onclick="document.getElementById('pay-modal').remove()" style="position:absolute;top:16px;right:16px;background:none;border:none;color:#555;font-size:22px;cursor:pointer;line-height:1">✕</button>
+      <div style="text-align:center;margin-bottom:28px">
+        <div style="font-size:40px;margin-bottom:8px">⭐</div>
+        <h2 style="color:#FFD600;font-size:20px;margin-bottom:6px">Pulsewave Premium</h2>
+        <p style="color:#666;font-size:13px">Keine Werbung · Sleep Timer · Crossfade · Gold-Theme</p>
+      </div>
+
+      <div style="margin-bottom:24px">
+        <div style="font-size:13px;font-weight:600;color:#888;margin-bottom:12px;text-transform:uppercase;letter-spacing:.5px">Schritt 1 — Zahlung</div>
+        ${paypalBtn}
+        <div style="font-size:12px;color:#444;margin-top:10px;line-height:1.6">
+          ${info?.paypalLink
+            ? `Trag deinen Pulsewave-Benutzernamen <strong style="color:#666">${currentUser?.username||''}</strong> als Betreff ein. Du bekommst dann einen Aktivierungscode.`
+            : ''}
+        </div>
+      </div>
+
+      <div>
+        <div style="font-size:13px;font-weight:600;color:#888;margin-bottom:12px;text-transform:uppercase;letter-spacing:.5px">Schritt 2 — Code einlösen</div>
+        <input id="pay-code-input" type="text" placeholder="PULSE-XXXX-XXXX-XXXX"
+          style="width:100%;background:#0d0d0d;border:1.5px solid #2a2a2a;border-radius:12px;padding:14px;color:#fff;font-size:15px;font-family:monospace;letter-spacing:1px;outline:none;margin-bottom:10px"
+          oninput="this.value=this.value.toUpperCase()">
+        <button onclick="redeemCode()" style="width:100%;background:linear-gradient(135deg,#FFD600,#FF9900);color:#000;border:none;border-radius:12px;padding:14px;font-size:15px;font-weight:700;cursor:pointer">
+          🎉 Code einlösen &amp; Premium aktivieren
+        </button>
+        <div id="pay-code-err" style="color:#ff4d4d;font-size:13px;text-align:center;margin-top:10px;display:none"></div>
+      </div>
+    </div>`;
+  document.body.appendChild(modal);
+  setTimeout(() => document.getElementById('pay-code-input')?.focus(), 100);
+}
+
+async function redeemCode() {
+  const code = document.getElementById('pay-code-input')?.value?.trim();
+  const errEl = document.getElementById('pay-code-err');
+  if (!code) { errEl.textContent = 'Bitte Code eingeben'; errEl.style.display='block'; return; }
+  errEl.style.display = 'none';
   try {
-    showToast('⏳ Checkout wird geöffnet…');
-    const data = await apiFetch('/api/create-checkout', { method: 'POST' });
-    if (data.url) window.location.href = data.url;
+    const data = await apiFetch('/api/redeem-code', { method:'POST', body: JSON.stringify({ code }) });
+    document.getElementById('pay-modal')?.remove();
+    // Update UI
+    if (currentUser) currentUser.is_premium = true;
+    document.getElementById('premium-badge')?.classList.add('show');
+    showToast('🎉 ' + (data.message || 'Premium aktiviert!'));
   } catch(ex) {
-    showToast('Fehler beim Starten des Checkouts: ' + ex.message);
+    errEl.textContent = ex.message || 'Ungültiger Code';
+    errEl.style.display = 'block';
   }
 }
 
