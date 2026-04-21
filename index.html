@@ -575,6 +575,33 @@
         <p class="auth-switch-link">Schon ein Account? <a href="#" onclick="switchTab('login')">Anmelden</a></p>
       </form>
 
+      <!-- Verification step -->
+      <div id="form-verify" class="auth-form hidden" style="display:none">
+        <div style="text-align:center;margin-bottom:24px">
+          <div style="font-size:48px;margin-bottom:12px">📧</div>
+          <h3 style="font-size:18px;font-weight:800;color:#fff;margin-bottom:8px">E-Mail bestätigen</h3>
+          <p style="font-size:13px;color:#555;line-height:1.6">Wir haben einen 6-stelligen Code an<br><strong id="verify-email-display" style="color:#FFD600"></strong> gesendet.</p>
+        </div>
+        <div class="auth-field">
+          <label>Verifizierungscode</label>
+          <input type="text" id="v-code" placeholder="123456" maxlength="6"
+            autocomplete="one-time-code" inputmode="numeric"
+            style="font-size:28px;font-weight:900;letter-spacing:10px;text-align:center"
+            oninput="this.value=this.value.replace(/\D/g,'')"/>
+        </div>
+        <div class="auth-error-msg" id="v-err"></div>
+        <button type="button" class="auth-submit-btn" id="v-btn" onclick="doVerify()">
+          <div class="spinner"></div>
+          <span class="btn-text">Bestätigen ✓</span>
+        </button>
+        <div style="text-align:center;margin-top:16px">
+          <span style="font-size:13px;color:#444">Code nicht angekommen? </span>
+          <a href="#" id="resend-link" onclick="resendCode(event)" style="font-size:13px;color:#FFD600;text-decoration:none;font-weight:600">Erneut senden</a>
+          <span id="resend-timer" style="font-size:12px;color:#444;display:none"></span>
+        </div>
+        <p class="auth-switch-link"><a href="#" onclick="switchTab('register')">← Zurück</a></p>
+      </div>
+
       <!-- Success state -->
       <div class="auth-success" id="auth-success">
         <div class="success-circle">🎵</div>
@@ -908,11 +935,12 @@ function closeAuth() {
   document.body.style.overflow = '';
 }
 function switchTab(tab) {
-  // Hide success
-  document.getElementById('auth-success').style.display = 'none';
-
+  document.getElementById('auth-success').style.display  = 'none';
+  document.getElementById('form-verify').style.display   = 'none';
+  document.getElementById('form-verify').classList.add('hidden');
   document.getElementById('form-login').classList.toggle('hidden', tab !== 'login');
   document.getElementById('form-register').classList.toggle('hidden', tab !== 'register');
+  document.getElementById('form-register').style.display = tab === 'register' ? 'flex' : 'none';
   document.getElementById('tab-login').classList.toggle('active', tab === 'login');
   document.getElementById('tab-register').classList.toggle('active', tab === 'register');
   clearErrors();
@@ -954,6 +982,9 @@ async function doLogin(e) {
 // ══════════════════════════════════════════════════════════
 // REGISTER
 // ══════════════════════════════════════════════════════════
+let _pendingEmail = '';
+let _resendTimeout = null;
+
 async function doRegister(e) {
   e.preventDefault();
   const btn = document.getElementById('r-btn');
@@ -963,18 +994,92 @@ async function doRegister(e) {
   if (pass !== pass2) { showError('r-err', 'Passwörter stimmen nicht überein'); return; }
   btn.classList.add('loading'); btn.disabled = true;
   try {
+    const email = document.getElementById('r-email').value.trim();
     const data = await apiFetch('/api/register', {
       method: 'POST',
       body: JSON.stringify({
-        email:    document.getElementById('r-email').value.trim(),
+        email,
         username: document.getElementById('r-user').value.trim(),
         password: pass
       })
     });
-    localStorage.setItem('pw_token', data.token);
-    setLoggedIn(data.user, true);
+    if (data.needsVerification) {
+      // Show verification step
+      _pendingEmail = email;
+      document.getElementById('form-register').classList.add('hidden');
+      document.getElementById('form-register').style.display = 'none';
+      const vf = document.getElementById('form-verify');
+      vf.classList.remove('hidden');
+      vf.style.display = 'flex';
+      document.getElementById('verify-email-display').textContent = email;
+      document.getElementById('v-code').value = '';
+      document.getElementById('v-code').focus();
+      startResendTimer(60);
+    } else if (data.token) {
+      // Immediate login (fallback if verification disabled)
+      localStorage.setItem('pw_token', data.token);
+      setLoggedIn(data.user, true);
+    }
   } catch(ex) { showError('r-err', ex.message); }
   finally { btn.classList.remove('loading'); btn.disabled = false; }
+}
+
+async function doVerify() {
+  const btn = document.getElementById('v-btn');
+  const code = document.getElementById('v-code').value.trim();
+  document.getElementById('v-err').textContent = '';
+  if (code.length !== 6) { document.getElementById('v-err').textContent = 'Bitte alle 6 Ziffern eingeben'; return; }
+  btn.classList.add('loading'); btn.disabled = true;
+  try {
+    const data = await apiFetch('/api/verify-email', {
+      method: 'POST',
+      body: JSON.stringify({ email: _pendingEmail, code })
+    });
+    localStorage.setItem('pw_token', data.token);
+    // Hide verify form, show success
+    document.getElementById('form-verify').style.display = 'none';
+    setLoggedIn(data.user, true);
+  } catch(ex) {
+    document.getElementById('v-err').textContent = ex.message;
+    document.getElementById('v-code').value = '';
+    document.getElementById('v-code').focus();
+  }
+  finally { btn.classList.remove('loading'); btn.disabled = false; }
+}
+
+async function resendCode(e) {
+  e.preventDefault();
+  if (!_pendingEmail) return;
+  const link = document.getElementById('resend-link');
+  link.style.pointerEvents = 'none'; link.style.opacity = '.4';
+  try {
+    await apiFetch('/api/resend-code', { method:'POST', body: JSON.stringify({ email: _pendingEmail }) });
+    showToast('📧 Neuer Code gesendet!');
+    startResendTimer(60);
+  } catch(ex) {
+    showToast('Fehler: ' + ex.message);
+    link.style.pointerEvents = ''; link.style.opacity = '';
+  }
+}
+
+function startResendTimer(seconds) {
+  const link  = document.getElementById('resend-link');
+  const timer = document.getElementById('resend-timer');
+  link.style.display  = 'none';
+  timer.style.display = 'inline';
+  clearTimeout(_resendTimeout);
+  let s = seconds;
+  const tick = () => {
+    timer.textContent = `Erneut senden in ${s}s`;
+    if (s-- > 0) { _resendTimeout = setTimeout(tick, 1000); }
+    else {
+      timer.style.display = 'none';
+      link.style.display  = 'inline';
+      link.style.pointerEvents = '';
+      link.style.opacity  = '';
+    }
+  };
+  tick();
 }
 
 // ══════════════════════════════════════════════════════════
