@@ -694,7 +694,18 @@
   <div style="max-width:900px;margin:0 auto">
     <p class="section-eyebrow">Jetzt anhören</p>
     <h2 class="section-heading">Musik direkt im Browser</h2>
-    <p style="text-align:center;color:#555;font-size:15px;margin-bottom:36px">Suche nach Songs oder starte eine Radio-Station — komplett kostenlos.</p>
+    <p style="text-align:center;color:#555;font-size:15px;margin-bottom:20px">Suche nach Songs oder starte eine Radio-Station — komplett kostenlos.</p>
+
+    <!-- Settings box (hidden by default) -->
+    <div id="wp-settings-box" style="display:none;background:#0f0e00;border:1px solid rgba(255,214,0,.25);border-radius:12px;padding:16px 20px;margin-bottom:20px">
+      <p style="font-size:12px;font-weight:700;color:#FFD600;margin-bottom:8px">⚙️ Backend-URL ändern</p>
+      <p style="font-size:11px;color:#555;margin-bottom:10px">Falls der Server eine neue Tunnel-URL hat, hier eintragen:</p>
+      <div style="display:flex;gap:8px">
+        <input id="wp-backend-input" type="text" style="flex:1;background:#1a1a1a;border:1px solid #333;border-radius:8px;padding:8px 12px;color:#fff;font-size:13px;outline:none" placeholder="https://xxx.loca.lt"/>
+        <button onclick="wpSaveSettings()" style="background:#FFD600;color:#000;border:none;border-radius:8px;padding:8px 16px;font-weight:700;font-size:13px;cursor:pointer">Speichern</button>
+        <button onclick="document.getElementById('wp-settings-box').style.display='none'" style="background:#1a1a1a;color:#888;border:1px solid #333;border-radius:8px;padding:8px 12px;font-size:13px;cursor:pointer">✕</button>
+      </div>
+    </div>
 
     <!-- Search bar -->
     <div style="display:flex;gap:10px;margin-bottom:28px">
@@ -710,7 +721,10 @@
 
     <!-- Radio stations quick-pick -->
     <div style="margin-bottom:28px">
-      <p style="font-size:12px;font-weight:700;color:#444;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px">📻 Radio Stationen</p>
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+        <p style="font-size:12px;font-weight:700;color:#444;text-transform:uppercase;letter-spacing:1px;margin:0">📻 Radio Stationen</p>
+        <button onclick="wpShowSettings()" title="Backend-URL ändern" style="background:none;border:1px solid #222;color:#444;border-radius:6px;padding:2px 8px;font-size:11px;cursor:pointer;transition:.2s" onmouseover="this.style.color='#FFD600';this.style.borderColor='#FFD600'" onmouseout="this.style.color='#444';this.style.borderColor='#222'">⚙️ Server-URL</button>
+      </div>
       <div style="display:flex;gap:8px;flex-wrap:wrap">
         <button class="wp-radio-btn" onclick="wpRadio('lofi hip hop chill beats','😌 Chill Radio')">😌 Chill</button>
         <button class="wp-radio-btn" onclick="wpRadio('top chart hits music 2024','🌍 Top Hits')">🌍 Top Hits</button>
@@ -771,6 +785,29 @@
 // ── Web Player ──────────────────────────────────────────────────────────────
 var wpPlayer = null, wpTracks = [], wpIdx = 0, wpPlaying = false;
 
+// Backend URL — configurable, stored in localStorage
+function wpGetBackend() {
+  return localStorage.getItem('pw_backend_url') || 'https://pulsewave-welias.loca.lt';
+}
+function wpSetBackend(url) {
+  url = url.trim().replace(/\/$/, '');
+  if (!url.startsWith('http')) url = 'https://' + url;
+  localStorage.setItem('pw_backend_url', url);
+  return url;
+}
+function wpShowSettings() {
+  const cur = wpGetBackend();
+  const input = document.getElementById('wp-backend-input');
+  input.value = cur;
+  document.getElementById('wp-settings-box').style.display = 'block';
+}
+function wpSaveSettings() {
+  const v = document.getElementById('wp-backend-input').value;
+  const saved = wpSetBackend(v);
+  document.getElementById('wp-settings-box').style.display = 'none';
+  document.getElementById('wp-empty').textContent = '✅ Backend-URL gesetzt: ' + saved + ' — jetzt Station wählen';
+}
+
 function onYouTubeIframeAPIReady() {
   wpPlayer = new YT.Player('wp-yt-player', {
     height:'200', width:'100%',
@@ -809,7 +846,8 @@ async function wpRadio(query, name) {
 }
 
 async function wpFetch(query, attempt) {
-  const res = await fetch(`https://pulsewave-welias.loca.lt/api/search?q=${encodeURIComponent(query)}`, {
+  const base = wpGetBackend();
+  const res = await fetch(`${base}/api/search?q=${encodeURIComponent(query)}`, {
     headers:{'bypass-tunnel-reminder':'true'}
   });
   const data = await res.json();
