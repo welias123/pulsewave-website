@@ -808,24 +808,39 @@ async function wpRadio(query, name) {
   await wpLoad(query);
 }
 
+async function wpFetch(query, attempt) {
+  const res = await fetch(`https://pulsewave-welias.loca.lt/api/search?q=${encodeURIComponent(query)}`, {
+    headers:{'bypass-tunnel-reminder':'true'}
+  });
+  const data = await res.json();
+  if (!data.results?.length) throw new Error('Keine Ergebnisse');
+  return data.results;
+}
+
 async function wpLoad(query) {
   document.getElementById('wp-empty').textContent = '⏳ Lädt…';
   document.getElementById('wp-empty').style.display = 'flex';
   document.getElementById('wp-results').style.display = 'none';
 
-  try {
-    const res = await fetch(`https://pulsewave-welias.loca.lt/api/search?q=${encodeURIComponent(query)}`, {
-      headers:{'bypass-tunnel-reminder':'true'}
-    });
-    const data = await res.json();
-    if (!data.results?.length) throw new Error('Keine Ergebnisse');
-    wpTracks = data.results;
-    wpIdx = 0;
-    renderWpList();
-    wpPlayIdx(0);
-  } catch(e) {
-    document.getElementById('wp-empty').textContent = '❌ ' + e.message;
+  const MAX_RETRIES = 4;
+  let lastErr;
+  for (let i = 0; i < MAX_RETRIES; i++) {
+    try {
+      if (i > 0) {
+        document.getElementById('wp-empty').textContent = `⏳ Verbinde… (Versuch ${i+1})`;
+        await new Promise(r => setTimeout(r, 2000));
+      }
+      const results = await wpFetch(query, i);
+      wpTracks = results;
+      wpIdx = 0;
+      renderWpList();
+      wpPlayIdx(0);
+      return;
+    } catch(e) {
+      lastErr = e;
+    }
   }
+  document.getElementById('wp-empty').textContent = '❌ Server nicht erreichbar — bitte kurz warten und nochmal versuchen';
 }
 
 function renderWpList() {
