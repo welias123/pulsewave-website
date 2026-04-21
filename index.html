@@ -689,6 +689,195 @@
   </div>
 </section>
 
+<!-- ── WEB PLAYER ── -->
+<section id="player" style="padding:80px 24px;background:linear-gradient(180deg,#080808 0%,#0a0800 100%)">
+  <div style="max-width:900px;margin:0 auto">
+    <p class="section-eyebrow">Jetzt anhören</p>
+    <h2 class="section-heading">Musik direkt im Browser</h2>
+    <p style="text-align:center;color:#555;font-size:15px;margin-bottom:36px">Suche nach Songs oder starte eine Radio-Station — komplett kostenlos.</p>
+
+    <!-- Search bar -->
+    <div style="display:flex;gap:10px;margin-bottom:28px">
+      <div style="flex:1;position:relative">
+        <svg style="position:absolute;left:14px;top:50%;transform:translateY(-50%);color:#555" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+        <input id="wp-search" type="text" placeholder="Suche nach Song oder Artist…"
+          style="width:100%;background:#111;border:1px solid #222;border-radius:12px;padding:12px 14px 12px 42px;color:#fff;font-size:14px;outline:none"
+          onkeydown="if(event.key==='Enter')wpSearch()"
+          onfocus="this.style.borderColor='#FFD600'" onblur="this.style.borderColor='#222'"/>
+      </div>
+      <button onclick="wpSearch()" style="background:#FFD600;color:#000;border:none;border-radius:12px;padding:12px 22px;font-weight:700;font-size:14px;cursor:pointer;white-space:nowrap">Suchen</button>
+    </div>
+
+    <!-- Radio stations quick-pick -->
+    <div style="margin-bottom:28px">
+      <p style="font-size:12px;font-weight:700;color:#444;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px">📻 Radio Stationen</p>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="wp-radio-btn" onclick="wpRadio('lofi hip hop chill beats','😌 Chill Radio')">😌 Chill</button>
+        <button class="wp-radio-btn" onclick="wpRadio('top chart hits music 2024','🌍 Top Hits')">🌍 Top Hits</button>
+        <button class="wp-radio-btn" onclick="wpRadio('hip hop rap songs','🎤 Hip-Hop')">🎤 Hip-Hop</button>
+        <button class="wp-radio-btn" onclick="wpRadio('pop music hits','🎵 Pop')">🎵 Pop</button>
+        <button class="wp-radio-btn" onclick="wpRadio('electronic dance music','⚡ Electronic')">⚡ Electronic</button>
+        <button class="wp-radio-btn" onclick="wpRadio('rock music classic hits','🎸 Rock')">🎸 Rock</button>
+        <button class="wp-radio-btn" onclick="wpRadio('workout motivation gym music','💪 Workout')">💪 Workout</button>
+        <button class="wp-radio-btn" onclick="wpRadio('kpop songs hits','⭐ K-Pop')">⭐ K-Pop</button>
+      </div>
+    </div>
+
+    <!-- Player + results layout -->
+    <div style="display:grid;grid-template-columns:1fr 340px;gap:20px;align-items:start">
+      <!-- Track list -->
+      <div id="wp-results" style="display:none">
+        <div id="wp-now-playing" style="display:none;background:#0f0e00;border:1px solid rgba(255,214,0,.2);border-radius:14px;padding:14px 16px;margin-bottom:14px;display:flex;align-items:center;gap:12px">
+          <img id="wp-np-thumb" src="" style="width:48px;height:48px;border-radius:8px;object-fit:cover"/>
+          <div style="flex:1;min-width:0">
+            <div id="wp-np-title" style="font-size:13px;font-weight:700;color:#fff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></div>
+            <div id="wp-np-artist" style="font-size:11px;color:#FFD600;margin-top:2px"></div>
+          </div>
+          <div style="font-size:11px;color:#555">▶ spielt</div>
+        </div>
+        <div id="wp-track-list" style="display:flex;flex-direction:column;gap:4px;max-height:420px;overflow-y:auto"></div>
+      </div>
+      <div id="wp-empty" style="display:flex;align-items:center;justify-content:center;height:200px;color:#333;font-size:14px">Suche nach Musik oder starte eine Station →</div>
+
+      <!-- YouTube embed player (hidden, audio-only) -->
+      <div style="position:sticky;top:20px">
+        <div id="wp-player-wrap" style="display:none;background:#0d0d0d;border:1px solid #1e1e1e;border-radius:16px;overflow:hidden">
+          <div id="wp-yt-player"></div>
+          <div style="padding:12px 14px;display:flex;align-items:center;justify-content:space-between">
+            <button id="wp-btn-prev" onclick="wpPrev()" style="background:#1a1a1a;border:none;color:#fff;width:36px;height:36px;border-radius:50%;cursor:pointer;font-size:14px">⏮</button>
+            <button id="wp-btn-play" onclick="wpToggle()" style="background:#FFD600;border:none;color:#000;width:44px;height:44px;border-radius:50%;cursor:pointer;font-size:18px;font-weight:700">▶</button>
+            <button id="wp-btn-next" onclick="wpNext()" style="background:#1a1a1a;border:none;color:#fff;width:36px;height:36px;border-radius:50%;cursor:pointer;font-size:14px">⏭</button>
+          </div>
+        </div>
+        <div id="wp-player-placeholder" style="background:#0d0d0d;border:1px solid #1e1e1e;border-radius:16px;padding:40px 20px;text-align:center;color:#333;font-size:13px">
+          🎵<br/>Wähle einen Song zum Abspielen
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+.wp-radio-btn{background:rgba(255,255,255,.06);border:1px solid #222;color:#aaa;border-radius:20px;padding:6px 14px;font-size:12px;font-weight:600;cursor:pointer;transition:.2s;white-space:nowrap}
+.wp-radio-btn:hover,.wp-radio-btn.active{background:rgba(255,214,0,.12);border-color:rgba(255,214,0,.3);color:#FFD600}
+.wp-track-row{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:9px;cursor:pointer;transition:.15s}
+.wp-track-row:hover{background:rgba(255,255,255,.05)}
+.wp-track-row.active{background:rgba(255,214,0,.08)}
+#wp-track-list::-webkit-scrollbar{width:4px}
+#wp-track-list::-webkit-scrollbar-thumb{background:#222;border-radius:2px}
+</style>
+
+<script>
+// ── Web Player ──────────────────────────────────────────────────────────────
+var wpPlayer = null, wpTracks = [], wpIdx = 0, wpPlaying = false;
+
+function onYouTubeIframeAPIReady() {
+  wpPlayer = new YT.Player('wp-yt-player', {
+    height:'200', width:'100%',
+    playerVars:{ autoplay:1, controls:1, rel:0, modestbranding:1 },
+    events:{
+      onReady: () => {},
+      onStateChange: (e) => {
+        wpPlaying = e.data === YT.PlayerState.PLAYING;
+        document.getElementById('wp-btn-play').textContent = wpPlaying ? '⏸' : '▶';
+        if (e.data === YT.PlayerState.ENDED) wpNext();
+      }
+    }
+  });
+}
+
+function loadYTApi() {
+  if (window.YT) return;
+  const s = document.createElement('script');
+  s.src = 'https://www.youtube.com/iframe_api';
+  document.head.appendChild(s);
+}
+
+async function wpSearch() {
+  const q = document.getElementById('wp-search').value.trim();
+  if (!q) return;
+  document.querySelectorAll('.wp-radio-btn').forEach(b => b.classList.remove('active'));
+  await wpLoad(q);
+}
+
+async function wpRadio(query, name) {
+  document.querySelectorAll('.wp-radio-btn').forEach(b => {
+    b.classList.toggle('active', b.textContent.trim() === name.trim());
+  });
+  document.getElementById('wp-search').value = '';
+  await wpLoad(query);
+}
+
+async function wpLoad(query) {
+  document.getElementById('wp-empty').textContent = '⏳ Lädt…';
+  document.getElementById('wp-empty').style.display = 'flex';
+  document.getElementById('wp-results').style.display = 'none';
+
+  try {
+    const res = await fetch(`https://pulsewave-welias.loca.lt/api/search?q=${encodeURIComponent(query)}`, {
+      headers:{'bypass-tunnel-reminder':'true'}
+    });
+    const data = await res.json();
+    if (!data.results?.length) throw new Error('Keine Ergebnisse');
+    wpTracks = data.results;
+    wpIdx = 0;
+    renderWpList();
+    wpPlayIdx(0);
+  } catch(e) {
+    document.getElementById('wp-empty').textContent = '❌ ' + e.message;
+  }
+}
+
+function renderWpList() {
+  document.getElementById('wp-empty').style.display = 'none';
+  document.getElementById('wp-results').style.display = 'block';
+  const list = document.getElementById('wp-track-list');
+  list.innerHTML = wpTracks.map((t,i)=>`
+    <div class="wp-track-row${i===wpIdx?' active':''}" onclick="wpPlayIdx(${i})">
+      <img src="${t.thumbnail}" style="width:40px;height:40px;border-radius:6px;object-fit:cover;flex-shrink:0"/>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:13px;font-weight:600;color:#ddd;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${t.title}</div>
+        <div style="font-size:11px;color:#555">${t.artist} · ${t.duration}</div>
+      </div>
+      <div style="font-size:12px;color:#333">${i===wpIdx?'▶':''}</div>
+    </div>`).join('');
+}
+
+function wpPlayIdx(i) {
+  wpIdx = i;
+  const t = wpTracks[i];
+  if (!t) return;
+
+  // Update now-playing bar
+  const np = document.getElementById('wp-now-playing');
+  np.style.display = 'flex';
+  document.getElementById('wp-np-title').textContent  = t.title;
+  document.getElementById('wp-np-artist').textContent = t.artist;
+  document.getElementById('wp-np-thumb').src = t.thumbnail;
+
+  // Show player, hide placeholder
+  document.getElementById('wp-player-wrap').style.display = 'block';
+  document.getElementById('wp-player-placeholder').style.display = 'none';
+  loadYTApi();
+
+  if (wpPlayer && wpPlayer.loadVideoById) {
+    wpPlayer.loadVideoById(t.videoId);
+  } else {
+    // API not ready yet — wait and retry
+    setTimeout(() => { if(wpPlayer) wpPlayer.loadVideoById(t.videoId); }, 1500);
+  }
+  renderWpList();
+}
+
+function wpToggle() {
+  if (!wpPlayer) return;
+  wpPlaying ? wpPlayer.pauseVideo() : wpPlayer.playVideo();
+}
+function wpNext() { if (wpIdx < wpTracks.length-1) wpPlayIdx(wpIdx+1); }
+function wpPrev() { if (wpIdx > 0) wpPlayIdx(wpIdx-1); }
+</script>
+<script src="https://www.youtube.com/iframe_api" async></script>
+
 <!-- ── FEATURES ── -->
 <section class="features" id="features">
   <div class="section-inner">
