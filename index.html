@@ -1484,7 +1484,18 @@ function renderPayPalButton(loggedIn) {
   container.innerHTML = '';
   paypal.Buttons({
     style: { shape: 'pill', color: 'gold', layout: 'vertical', label: 'subscribe' },
-    createSubscription: (data, actions) => actions.subscription.create({ plan_id: PAYPAL_PLAN_ID }),
+    createSubscription: (data, actions) => {
+      return actions.subscription.create({ plan_id: PAYPAL_PLAN_ID }).catch(err => {
+        const statusEl = document.getElementById('pay-status');
+        if (statusEl) {
+          statusEl.style.display = 'block';
+          statusEl.style.background = '#1a0a0a';
+          statusEl.style.color = '#ff6b6b';
+          statusEl.textContent = '❌ ' + (err?.message || 'Subscription konnte nicht erstellt werden');
+        }
+        throw err;
+      });
+    },
     onApprove: async function(data) {
       const statusEl = document.getElementById('pay-status');
       statusEl.style.display = 'block';
@@ -1548,7 +1559,20 @@ function renderPayPalButton(loggedIn) {
         }
       }
     },
-    onError: (err) => console.error('PayPal:', err)
+    onCancel: () => {
+      container.style.display = 'block';
+    },
+    onError: (err) => {
+      console.error('PayPal error:', err);
+      const statusEl = document.getElementById('pay-status');
+      if (statusEl) {
+        statusEl.style.display = 'block';
+        statusEl.style.background = '#1a0a0a';
+        statusEl.style.color = '#ff6b6b';
+        statusEl.textContent = '❌ PayPal-Fehler: ' + (err?.message || JSON.stringify(err));
+      }
+      container.style.display = 'block';
+    }
   }).render('#paypal-button-container');
 }
 
