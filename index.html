@@ -1071,7 +1071,7 @@ loadYTApi();
         </div>
         <h3>Windows</h3>
         <p>Windows 10 / 11 · x64</p>
-        <a href="https://github.com/welias123/pulsewave-app/releases/latest/download/Pulsewave-Setup.exe" class="dl-btn">
+        <a href="https://github.com/welias123/pulsewave-app/releases/latest/download/Pulsewave-Setup-1.5.0.exe" id="win-dl-btn" class="dl-btn">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="16" height="16"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
           Download für Windows
         </a>
@@ -1083,7 +1083,7 @@ loadYTApi();
         </div>
         <h3>macOS</h3>
         <p>macOS 11+ · Apple Silicon &amp; Intel</p>
-        <a href="https://github.com/welias123/pulsewave-app/releases/latest/download/Pulsewave-Mac.dmg" class="dl-btn">
+        <a href="https://github.com/welias123/pulsewave-app/releases/latest/download/Pulsewave-Mac-1.5.0.dmg" id="mac-dl-btn" class="dl-btn">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="16" height="16"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
           Download für Mac
         </a>
@@ -1667,18 +1667,27 @@ document.getElementById('nav-cta').addEventListener('click', function(e) {
 </script>
 
 <script>
-// Auto-fetch latest version from GitHub Releases
+// Auto-fetch latest version + download links from GitHub Releases
 (async () => {
   try {
     const r = await fetch('https://api.github.com/repos/welias123/pulsewave-app/releases/latest');
     const d = await r.json();
     if (!d.tag_name) return;
-    const ver = d.tag_name.replace('v','').split('.').slice(0,2).join('.'); // "1.4"
-    const label = `v${ver} · Automatische Updates`;
+    const fullVer = d.tag_name.replace('v',''); // "1.5.0"
+    const shortVer = fullVer.split('.').slice(0,2).join('.'); // "1.5"
+    const label = `v${shortVer} · Automatische Updates`;
+
+    // Update version labels
     const winEl = document.getElementById('win-ver');
     const macEl = document.getElementById('mac-ver');
     if (winEl) winEl.textContent = label;
     if (macEl) macEl.textContent = label;
+
+    // Update download links to match versioned filenames
+    const winBtn = document.getElementById('win-dl-btn');
+    const macBtn = document.getElementById('mac-dl-btn');
+    if (winBtn) winBtn.href = `https://github.com/welias123/pulsewave-app/releases/latest/download/Pulsewave-Setup-${fullVer}.exe`;
+    if (macBtn) macBtn.href = `https://github.com/welias123/pulsewave-app/releases/latest/download/Pulsewave-Mac-${fullVer}.dmg`;
   } catch {}
 })();
 </script>
